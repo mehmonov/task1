@@ -1,0 +1,6 @@
+1. i created the project.i used a request to send a POST request. i wanted to test it in Postman but it couldn’t send the data. i just wanted to see the JSON data returned from the request. i get part1_value
+
+2. I used flask to set up the webhook url, opened a global port with ngrok, sent the link using a request, then suddenly saw "ImmutableMultiDict([])" which was empty, so i started searching for the issue
+2.1 i switched to using tarmoqchi because ngrok kept changing the urls, and tarmoqchi is free with a permanent subdomain. i still couldn’t fix the main issue. i think the data isn’t being sent to the url from the server side, or i’m not receiving it correctly in flask.
+
+3. it worked, but then i ran into other issues.first the task said “- Bonus points for implementing everything in a single file.” that means everything should be in one python file. it also needed to receive data through a webhook and then send another request. i started the flask app in a separate thread (line 29, threading.Thread) and waited for part2 to arrive (while part2_storage[“value”] is None) which i had defined earlier. after combining it, i sent another request and displayed the final response in the console since the task said “console or web” and i chose the console

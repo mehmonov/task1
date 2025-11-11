@@ -1,18 +1,61 @@
-from flask import Flask, request
+import json
+import threading
+import time
 import requests
-from config import URL
+from flask import Flask, request
+
+API_URL = "https://test.icorp.uz/interview.php"
+PORT = 5001
+NGROK_URL = "https://282b846409b0.ngrok-free.app"
 
 app = Flask(__name__)
 
-data = requests.post(url=URL, data={
-    'msg': "message",
-    "url": "https://89a3c872fe9f.ngrok-free.app"
-})
+part2_storage = {"value": None}
 
-print(data.json)
+@app.route('/', methods=['POST', 'GET'])
+def webhook():
+    if request.method == 'POST':
+        data = request.get_json(force=True, silent=True) # https://tedboy.github.io/flask/generated/generated/flask.Request.get_json.html
+        
+        code_part = list(data.values())[0] if isinstance(data, dict) and data else str(data)
+        
+        part2_storage["value"] = code_part # type: ignore
 
-@app.route("/", methods=['GET', 'POST'])
-def get_data():
-    query = request.args
-    print(query)
-    return f'results for: {query}'
+        return "OK"
+    
+    return "Webhook oke"
+
+def main():
+    threading.Thread(
+        target=lambda: app.run(host='0.0.0.0', port=PORT, debug=False, use_reloader=False),
+        daemon=True
+    ).start()
+    time.sleep(1)
+    
+    payload = {"msg": "finally...", "url": NGROK_URL}
+    
+    res = requests.post(API_URL, json=payload)
+
+    data = json.loads(res.text)
+
+    part1 = data.get("part1")
+
+    print(f"Part 1: {part1}")
+    
+    while part2_storage["value"] is None:
+        time.sleep(0.1) 
+    
+    part2 = part2_storage["value"]
+
+    print(f"Part 2: {part2}")
+    
+    combined_code = f"{part1}{part2}" #merged
+
+    print(f"\n combined: {combined_code}")
+    
+    final_response = requests.get(API_URL, params={"code": combined_code})
+    
+    print(f"\nfinal message: {final_response.text.strip()}")
+
+if __name__ == "__main__":
+    main()
